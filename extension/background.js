@@ -7,7 +7,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 async function handleGeneratePdf(jobText) {
-  const API_URL = "http://localhost:8000/tailor";
+  const API_URL = "https://tailor-resume-chrome-ext.onrender.com/tailor";
 
   try {
     console.log("handleGeneratePdf called. Job text length:", jobText ? jobText.length : 0);
