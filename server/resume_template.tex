@@ -1,0 +1,132 @@
+\documentclass[10pt]{article}
+
+% ---------- Page (dense, full-page) ----------
+\usepackage[letterpaper,margin=0.50in]{geometry}
+\pagestyle{empty}
+
+% ---------- Utility ----------
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}     % <-- improves rendering/crispness in pdfLaTeX
+\usepackage{microtype}   % <-- makes text look less "washed out"
+\usepackage{tabularx}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage[normalem]{ulem}
+\usepackage{ragged2e}
+\usepackage{enumitem}
+
+\hypersetup{
+  colorlinks=true,
+  urlcolor=blue
+}
+
+% Tight spacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{0.95}
+\linespread{0.96}
+\hyphenpenalty=10000
+\exhyphenpenalty=10000
+
+% Lists (tight + small bullets)
+\setlist[itemize]{leftmargin=14pt, itemsep=0pt, topsep=0pt, parsep=0pt, partopsep=0pt}
+\renewcommand\labelitemi{\raisebox{0.35ex}{\tiny$\bullet$}}
+
+% Section header (ultra-tight header-to-rule spacing)
+\newcommand{\resumesection}[1]{
+  \vspace{2pt}
+  {\textbf{#1}}\par
+  \vspace{-6pt} % <-- even tighter gap (was -5pt)
+  \rule{\textwidth}{0.5pt}\vspace{1pt}
+}
+
+% Two-line heading: left / right
+\newcommand{\twoLineHeading}[4]{
+  \begin{tabularx}{\textwidth}{X r}
+    \textbf{#1} & \textbf{#2} \\
+    \textit{#3} & \textit{#4} \\
+  \end{tabularx}\vspace{-2pt}
+}
+
+% Blue underline for link-like text
+\newcommand{\blueuline}[1]{\textcolor{blue}{\uline{#1}}}
+
+\begin{document}
+\RaggedRight
+\normalsize        % <-- IMPORTANT: remove \small so text is darker/bigger
+\color{black}      % <-- force pure black
+
+% ---------- Header ----------
+\begin{center}
+  {\LARGE \textbf{Nawaf Mahmood}}\\[-2pt]
+  \large % <-- bigger contact/info line (was \normalsize)
+  Canadian Citizen \;|\;
+  \href{mailto:nawaf.mahmood2005@gmail.com}{nawaf.mahmood2005@gmail.com} \;|\;
+  (416)-474-3996 \;|\;
+  LinkedIn: \href{https://www.linkedin.com/in/nawaf2005/}{\blueuline{Nawaf M}} \;|\;
+  GitHub: \href{https://github.com/NawafM2005}{\blueuline{NawafM2005}}
+\end{center}
+
+% ---------- EDUCATION ----------
+\resumesection{EDUCATION}
+\twoLineHeading
+{Toronto Metropolitan University}{Toronto, Canada}
+{B.S in Computer Science (Co-op) \;|\; \textbf{CGPA: 4.13/4.33}}{Expected Graduation: May 2027}
+
+\begin{itemize}
+  \item \textbf{Related Coursework:} Data Structures \& Algorithms, Object-Oriented Programming, Computer Organization \& Programming, Operating Systems, C/UNIX, Software Tools for Startups, Statistics \& Applications
+  \item \textbf{Honours:} Dean's List 2023--2025
+\end{itemize}
+
+% ---------- EXPERIENCE ----------
+\resumesection{EXPERIENCE}
+\twoLineHeading
+{Zebra Robotics,}{Brampton, Ontario}
+{Summer Camp STEM Robotics and Coding Coach,}{May 2025 -- Present}
+
+\begin{itemize}
+  \item Instructed \textbf{120+ students} in Python programming and robotics, maintaining a \textbf{95\%} project completion rate.
+  \item Designed a new curriculum on 3D printing and electronics, which was adopted as a permanent course due to positive feedback.
+  \item Provided technical debugging support for student code, improving average assessment scores by \textbf{30\%}.
+\end{itemize}
+
+% ---------- PROJECTS ----------
+\resumesection{PROJECTS}
+
+\twoLineHeading
+{\href{https://lectraai.ca}{\blueuline{LectraAI,}}}{Toronto, Canada}
+{Next.js 15, TypeScript, Supabase, PostgreSQL, pgvector, Tailwind CSS}{October 2025 -- Present}
+
+\begin{itemize}
+%%PROJECT_LECTRA_BULLETS%%
+\end{itemize}
+
+\vspace{1pt}
+
+\twoLineHeading
+{\href{https://tmupulse.ca}{\blueuline{TMU Pulse,}}}{Toronto, Canada}
+{Next.js, TypeScript, Supabase, PostgreSQL, Tailwind, Python, Web Scraping}{June 2025 -- Present}
+
+\begin{itemize}
+%%PROJECT_PULSE_BULLETS%%
+\end{itemize}
+
+% ---------- ACTIVITIES ----------
+\resumesection{ACTIVITIES and LEADERSHIP}
+\twoLineHeading
+{The Start Up Society---Toronto Metropolitan University}{Toronto, Canada}
+{Web Developer, Videographer}{May 2025 -- Present}
+
+\begin{itemize}
+  \item Launched \textbf{5+} event landing pages, resulting in a \textbf{20\%} increase in sign-ups and a \textbf{15\%} reduction in site bounce rate.
+  \item Produced \textbf{8+} promotional videos, accumulating over \textbf{50,000 views} and increasing membership inquiries by \textbf{30\%}.
+\end{itemize}
+
+% ---------- SKILLS ----------
+\resumesection{SKILLS}
+\begin{itemize}
+  \item %%SKILLS_SECTION%%
+\end{itemize}
+
+\end{document}

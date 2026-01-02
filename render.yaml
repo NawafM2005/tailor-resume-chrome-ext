@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: resume-tailor-backend
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: |
+      cd server
+      apt-get update
+      apt-get install -y texlive-latex-base texlive-fonts-recommended texlive-latex-extra
+      pip install -r requirements.txt
+    startCommand: cd server && uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: MODEL
+        value: gpt-4o

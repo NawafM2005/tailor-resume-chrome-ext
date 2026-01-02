@@ -1,0 +1,88 @@
+# RESUME MASTER DATA
+
+## Project: TMU Pulse (Next.js, TypeScript, Supabase, PostgreSQL, Tailwind, Python, Web Scraping)
+- Launched a comprehensive academic planning dashboard adopted by 5,000+ active students, consolidating GPA tracking and scheduling into a unified React interface.
+- Orchestrated a targeted marketing campaign across Reddit and LinkedIn, achieving 15,000+ social interactions and securing a permanent spot in the university subreddit FAQ.
+- Engineered a robust Python web scraper to extract and normalize data for 3,700+ courses and 100+ departments, implementing error handling to bypass legacy system rate limits.
+- Utilized header rotation and session management in Python web scraper to bypass rate-limiting (WAF-like) protections on legacy servers.
+- Developed a custom algorithm to cross-reference university course codes with external API data (Rate My Professors), reducing student research time by approximately 50%.
+- Implemented strict data validation logic to ensure scraped course records are normalized and free of corruption before insertion into the SQL database.
+- Validated data accuracy across 100+ departments by running automated integrity checks, ensuring the dashboard displays real-time schedule information.
+- Implemented server-side caching (time-based invalidation) for high-traffic endpoints, reducing redundant database reads and improving page load performance.
+- Designed REST API contracts with strict TypeScript typing and centralized error handling, improving reliability and reducing client-side edge-case bugs.
+- Added database indexes and query optimization on course search and filter paths, improving lookup performance under peak usage.
+- Built automated regression checks for scraped data (schema validation and anomaly detection), preventing corrupted records from reaching production.
+- Implemented idempotent upserts and migration-safe ingestion scripts to support schema evolution without breaking historical data.
+- Added observability (structured logging and request tracing) to identify slow routes and scraper failure patterns quickly.
+- Introduced CI checks (lint, typecheck, unit tests) to prevent breaking changes and enforce consistent code quality.
+- Implemented rate-limit friendly scraping with adaptive backoff and retries to stabilize ingestion while minimizing load on upstream sites.
+- Hardened API endpoints with input validation and sanitization, reducing malformed requests and improving resilience.
+- Improved UX stability with React error boundaries and empty-state handling, preventing UI crashes from partial data.
+
+## Project: LectraAI (Next.js 15, TypeScript, Supabase, PostgreSQL, pgvector, Tailwind CSS)
+- Architected a custom RAG (Retrieval-Augmented Generation) pipeline serving 3,000+ students, utilizing pgvector to convert course materials into high-dimensional vector embeddings for semantic search.
+- Architected a secure full-stack platform implementing Role-Based Access Control (RBAC) via Supabase Auth to manage user permissions.
+- Designed a schema-optimized PostgreSQL database to index 5,000+ course files, implementing nearest-neighbour search logic to retrieve context-aware data for the AI model in under 200ms.
+- Enforced Row Level Security (RLS) policies on the PostgreSQL database, ensuring strict data isolation so students can only access their own uploaded files.
+- Engineered an automated ETL (Extract, Transform, Load) system using Python to clean and "chunk" raw PDF text, optimizing the data structure for the LLM's context window.
+- Refined system prompts via Prompt Engineering to enforce a "tutor" persona, reducing model hallucinations by grounding answers strictly in the provided 5,000+ academic resources.
+- Built a Python input sanitization pipeline to strip potentially malicious formatting and executable code from raw PDF uploads before processing.
+- Mitigated Prompt Injection risks by engineering strict system instructions that confine the AI model's responses solely to trusted, retrieved context.
+- Implemented async document processing (queue-style workflow) to ingest PDFs without blocking the UI, improving perceived performance and reliability.
+- Optimized embedding generation via batching and chunk deduplication, reducing processing cost and speeding up ingestion throughput.
+- Built a retrieval evaluation harness (ground-truth Q/A set) to measure search quality over time and detect regressions after pipeline changes.
+- Added reranking and relevance tuning (hybrid scoring: vector similarity plus metadata filters) to improve answer accuracy for ambiguous queries.
+- Implemented streaming responses from the LLM for faster time-to-first-token and a smoother tutoring experience.
+- Developed tenant-aware data model (multi-user isolation patterns) aligned with Supabase RLS, preventing cross-user leakage by design.
+- Implemented secure file handling with MIME and type checks and size limits to reduce ingestion failures and risk exposure.
+- Added token budgeting and context packing logic to fit retrieved chunks within model limits while preserving the highest-signal passages.
+- Introduced audit logging for auth-sensitive events (upload, delete, permission changes) to support debugging and security reviews.
+- Built graceful fallbacks when retrieval confidence is low (clarifying questions, citations, avoid guessing), reducing hallucination risk.
+
+## Skills Bank
+### Languages
+- Python (Strong/Scripting)
+- TypeScript
+- JavaScript
+- SQL
+- C/C++ (Memory Management)
+- Java
+- Bash/Shell
+- HTML/CSS
+
+### Frontend Frameworks
+- React.js
+- Next.js 15 (App Router)
+- Tailwind CSS
+- HTML5
+
+### Backend & Cloud
+- Node.js
+- Supabase (Auth, Storage, Edge Functions)
+- PostgreSQL
+- Vercel
+- REST APIs
+- HTTP/HTTPS
+
+### AI & Data
+- RAG (Retrieval-Augmented Generation)
+- pgvector
+- Vector Embeddings
+- LangChain
+- OpenAI API
+- Prompt Engineering
+- ETL Pipelines
+- Web Scraping
+- JSON/Data Parsing
+
+### Security
+- Authentication (OAuth/JWT)
+- Row Level Security (RLS)
+- Input Validation
+- Data Privacy
+
+### Tools
+- Git/GitHub
+- VS Code
+- Postman
+- Linux/Unix
