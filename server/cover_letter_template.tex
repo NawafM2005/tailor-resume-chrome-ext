@@ -1,0 +1,68 @@
+\documentclass[10pt]{article}
+
+% ---------- Page (standard letter) ----------
+\usepackage[letterpaper,margin=1in]{geometry}
+\pagestyle{empty}
+
+% ---------- Utility ----------
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage[normalem]{ulem}
+\usepackage{ragged2e}
+
+\hypersetup{
+  colorlinks=true,
+  urlcolor=blue
+}
+
+% Spacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1em}
+\linespread{1.1}
+
+% Blue underline for link-like text
+\newcommand{\blueuline}[1]{\textcolor{blue}{\uline{#1}}}
+
+\begin{document}
+\RaggedRight
+\normalsize
+\color{black}
+
+% ---------- Header (Matches Resume) ----------
+\begin{center}
+  {\LARGE \textbf{Nawaf Mahmood}}\\[-2pt]
+  \large
+  Canadian Citizen \;|\;
+  \href{mailto:nawaf.mahmood2005@gmail.com}{nawaf.mahmood2005@gmail.com} \;|\;
+  (416)-474-3996 \;|\;
+  LinkedIn: \href{https://www.linkedin.com/in/nawaf2005/}{\blueuline{Nawaf M}} \;|\;
+  GitHub: \href{https://github.com/NawafM2005}{\blueuline{NawafM2005}}
+\end{center}
+
+\vspace{1em}
+\hrule
+\vspace{2em}
+
+\today
+
+\vspace{1em}
+
+Hiring Manager \\
+\textbf{VAR_COMPANY_NAME}
+
+\vspace{2em}
+
+Dear Hiring Manager,
+
+VAR_BODY_CONTENT
+
+\vspace{2em}
+
+Sincerely,
+
+Nawaf Mahmood
+
+\end{document}

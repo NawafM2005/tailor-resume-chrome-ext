@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnExtract = document.getElementById('btn-extract');
   const btnGenerate = document.getElementById('btn-generate');
   const txtJob = document.getElementById('job-text');
+  const chkCoverLetter = document.getElementById('chk-cover-letter');
   const status = document.getElementById('status');
 
   // Button 1: Extract text from current tab
@@ -49,7 +50,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     chrome.runtime.sendMessage({ 
       action: "generate_pdf", 
-      jobText: jobText 
+      jobText: jobText,
+      includeCoverLetter: chkCoverLetter.checked
     }, (response) => {
         console.log("Response from background script:", response);
         if (chrome.runtime.lastError) {
