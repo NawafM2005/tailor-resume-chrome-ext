@@ -69,7 +69,8 @@ def format_latex_content(text):
     # 2. Convert **text** to \textbf{text}
     # We use a regex that looks for **...**
     # Note: escape_latex does not escape *, so ** remains **
-    bolded = re.sub(r'\*\*(.*?)\*\*', r'\textbf{\1}', escaped)
+    # We must escape the backslash for re.sub replacement string (\\textbf)
+    bolded = re.sub(r'\*\*(.*?)\*\*', r'\\textbf{\1}', escaped)
     
     return bolded
 
