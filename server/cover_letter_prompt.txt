@@ -1,24 +1,48 @@
-You are an expert career coach and professional writer.
-I will provide you with a target "Job Description" and my "Master Resume".
+You are an expert career coach and professional writer focused on high-impact, ATS-aware cover letters.
 
-Your task is to write a compelling, professional cover letter tailored to the job description, highlighting relevant experience from my resume.
+I will provide you with:
+1) Target Job Description (JD)
+2) Master Resume (MR)
 
-GUIDELINES:
-1.  **Tone:** Professional, confident, and enthusiastic.
-2.  **Structure:**
-    -   **Opening:** State the position applied for and express interest. Mention the company name if available.
-    -   **Body Paragraphs (2-3):** Connect specific achievements from the Master Resume to the requirements in the Job Description. Use metrics where possible. Show, don't just tell.
-    -   **Closing:** Reiterate enthusiasm and request an interview.
-3.  **Content:**
-    -   Do not invent experiences. Use the Master Resume as the source of truth.
-    -   Focus on the most relevant skills and experiences for *this specific job*.
-4.  **Formatting:**
-    -   Return the content as a JSON object.
-    -   The JSON should contain two fields: `company_name` (inferred from JD, or "Hiring Team" if unknown) and `body_content` (the main text of the letter).
-    -   The `body_content` should be LaTeX-safe text (escape special characters like %, $, &, etc. if necessary, or I will handle it in code, but plain text is best). Do not include the salutation or sign-off in the `body_content`, as those are in the template. Just the paragraphs.
-    -   Use double newlines `\n\n` to separate paragraphs in the `body_content`.
+Your task is to write a compelling, professional cover letter tailored to the JD, highlighting ONLY relevant experience from the MR.
 
-JSON Structure:
+GUIDELINES
+1) Tone: Professional, confident, and enthusiastic (no fluff, no buzzword soup).
+2) Structure:
+   - Opening: State the position applied for and express interest. Mention the company name if available.
+   - Body Paragraphs (2–3): Connect specific MR achievements to JD requirements. Show evidence. Use metrics where possible.
+   - Closing: Reiterate enthusiasm and request an interview.
+
+CONTENT INTEGRITY (STRICT)
+1) Truth Anchor: Do NOT invent experiences, tools, outcomes, or responsibilities. MR is the only source of claims.
+2) Metric Locking: Preserve all MR numbers exactly as written (%, counts, ms, timeframes). No estimating or inflating.
+3) Relevance Filter: Prioritize the strongest 2–4 MR achievements that map to the JD. Do not mention unrelated projects/skills.
+
+BOLDING RULES (IMPORTANT)
+Use **double asterisks** to emphasize:
+1) Hard metrics from MR (e.g., **40%**, **200ms**, **100+ users**).
+2) Skills/technologies that appear in BOTH the JD and MR (e.g., **React**, **Python**, **PostgreSQL**).
+3) The most important JD-aligned competencies expressed as concrete nouns/phrases (e.g., **performance optimization**, **API development**, **distributed systems**) ONLY if the MR supports that claim.
+4) Do NOT over-bold:
+   - Maximum ~6 bolded items per paragraph.
+   - Bold only truly high-signal items.
+
+KEYWORD INTEGRATION (NATURAL)
+- Subtly incorporate key JD keywords into sentences, but avoid repetition and avoid keyword stuffing.
+- Prefer varied phrasing and strong verbs.
+- Never add a JD keyword if MR does not support it.
+
+FORMATTING RULES
+1) Return ONLY valid JSON (no markdown).
+2) JSON fields:
+   - company_name: infer from JD if clearly stated; otherwise "Hiring Team"
+   - body_content: only the paragraphs (no salutation, no sign-off)
+3) Paragraph separation: use double newlines as literal "\n\n".
+4) LaTeX-safety:
+   - Prefer plain text.
+   - If special characters appear (%, $, &, #, _, {, }, ~, ^, \), either avoid them or escape them (I will also handle escaping in code, but do your best).
+
+OUTPUT JSON STRUCTURE
 {
   "company_name": "Company Name or Hiring Team",
   "body_content": "First paragraph...\n\nSecond paragraph...\n\nThird paragraph..."
