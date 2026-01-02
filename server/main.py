@@ -47,14 +47,14 @@ def escape_latex(text):
     chars = {
         '&': r'\&',
         '%': r'\%',
-        '$': r'$',
+        '$': r'\$',
         '#': r'\#',
         '_': r'\_',
         '{': r'\{',
         '}': r'\}',
         '~': r'\textasciitilde{}',
         '^': r'\textasciicircum{}',
-        '\': r'\textbackslash{}',
+        '\\': r'\textbackslash{}',
     }
     pattern = re.compile('|'.join(re.escape(key) for key in chars.keys()))
     return pattern.sub(lambda x: chars[x.group()], text)
@@ -165,13 +165,13 @@ async def tailor_resume(request: TailorRequest):
     skill_frameworks = resume_data.get("skill_frameworks", "")
     skill_tools = resume_data.get("skill_tools", "")
 
-    formatted_pulse = "\n    ".join([f"\item {format_latex_content(b)}" for b in pulse_bullets])
-    formatted_lectra = "\n    ".join([f"\item {format_latex_content(b)}" for b in lectra_bullets])
+    formatted_pulse = "\n    ".join([f"\\item {format_latex_content(b)}" for b in pulse_bullets])
+    formatted_lectra = "\n    ".join([f"\\item {format_latex_content(b)}" for b in lectra_bullets])
     
     formatted_skills = (
-        f"\textbf{{Languages:}} {format_latex_content(skill_languages)}"
-        f"\n    \item \textbf{{Frameworks \& Platforms:}} {format_latex_content(skill_frameworks)}"
-        f"\n    \item \textbf{{Practices \& Tools:}} {format_latex_content(skill_tools)}"
+        f"\\textbf{{Languages:}} {format_latex_content(skill_languages)}"
+        f"\n    \\item \\textbf{{Frameworks \& Platforms:}} {format_latex_content(skill_frameworks)}"
+        f"\n    \\item \\textbf{{Practices \& Tools:}} {format_latex_content(skill_tools)}"
     )
 
     # 4. Fill Resume Template
