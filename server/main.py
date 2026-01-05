@@ -44,6 +44,10 @@ def escape_latex(text):
     if not isinstance(text, str):
         return str(text)
     
+    # Remove control characters like \x07 (Bell) which cause LaTeX errors
+    # Keep newlines, tabs, and printable characters
+    text = "".join(ch for ch in text if ch.isprintable() or ch in '\n\t')
+
     chars = {
         '&': r'\&',
         '%': r'\%',
@@ -191,6 +195,7 @@ async def tailor_resume(request: TailorRequest):
     resume_pdf_bytes = compile_latex(filled_resume_latex, "resume")
 
     # 6. Handle Cover Letter (if requested)
+    cl_b64 = None
     if request.include_cover_letter:
         print("🤖 Calling OpenAI API for Cover Letter...")
         cl_full_prompt = f"{cover_letter_prompt_template}\n\nJOB DESCRIPTION:\n{request.job_text}\n\nMASTER RESUME:\n{master_resume}"
@@ -207,52 +212,37 @@ async def tailor_resume(request: TailorRequest):
             cl_content = cl_completion.choices[0].message.content
             cl_data = json.loads(cl_content)
             print("✅ OpenAI response received for Cover Letter")
-        except Exception as e:
-            print(f"OpenAI Error (Cover Letter): {e}")
-            # We can choose to fail hard or just skip the cover letter. Let's fail hard for now.
-            raise HTTPException(status_code=500, detail=f"AI Generation failed for Cover Letter: {str(e)}")
-            
-        company_name = cl_data.get("company_name", "Hiring Team")
-        body_content = cl_data.get("body_content", "")
-        
-        # Format body content (escape latex)
-        # Note: The prompt asks for LaTeX-safe text, but we should double check or just escape it if it's plain text.
-        # The prompt says "escape special characters... or I will handle it in code". Let's handle it to be safe.
-        # But we also want to preserve paragraphs.
-        
-        # Split by double newlines to preserve paragraphs
-        paragraphs = body_content.split("\n\n")
-        formatted_paragraphs = [format_latex_content(p.strip()) for p in paragraphs if p.strip()]
-        formatted_body = "\n\n".join(formatted_paragraphs)
-        
-        formatted_company = format_latex_content(company_name)
 
-        try:
+            company_name = cl_data.get("company_name", "Hiring Team")
+            body_content = cl_data.get("body_content", "")
+            
+            # Format body content (escape latex)
+            # Split by double newlines to preserve paragraphs
+            paragraphs = body_content.split("\n\n")
+            formatted_paragraphs = [format_latex_content(p.strip()) for p in paragraphs if p.strip()]
+            formatted_body = "\n\n".join(formatted_paragraphs)
+            
+            formatted_company = format_latex_content(company_name)
+
             with open("cover_letter_template.tex", "r") as f:
                 cl_latex_template = f.read()
             
             filled_cl_latex = cl_latex_template.replace("VAR_COMPANY_NAME", formatted_company)
             filled_cl_latex = filled_cl_latex.replace("VAR_BODY_CONTENT", formatted_body)
             
-        except FileNotFoundError:
-             raise HTTPException(status_code=500, detail="Cover Letter template missing")
-             
-        cl_pdf_bytes = compile_latex(filled_cl_latex, "cover_letter")
-        
-        # Return JSON with both PDFs
-        print("📦 Encoding PDFs to Base64...")
-        resume_b64 = base64.b64encode(resume_pdf_bytes).decode('utf-8')
-        cl_b64 = base64.b64encode(cl_pdf_bytes).decode('utf-8')
-        
-        return {
-            "resume": resume_b64,
-            "cover_letter": cl_b64
-        }
+            cl_pdf_bytes = compile_latex(filled_cl_latex, "cover_letter")
+            cl_b64 = base64.b64encode(cl_pdf_bytes).decode('utf-8')
+            
+        except Exception as e:
+            print(f"❌ Cover Letter generation/compilation failed: {e}")
+            # Do not raise exception, so resume can still be returned
+            cl_b64 = None
 
-    # Return just the resume PDF (as JSON for consistency)
-    print(f"✅ PDF generated successfully ({len(resume_pdf_bytes)} bytes)")
+    # Return JSON with PDFs (Resume is always present if we got this far)
+    print("📦 Encoding Resume to Base64...")
     resume_b64 = base64.b64encode(resume_pdf_bytes).decode('utf-8')
+    
     return {
         "resume": resume_b64,
-        "cover_letter": None
+        "cover_letter": cl_b64
     }
