@@ -5,87 +5,127 @@ I will provide:
 2) Master Resume (MR) containing the ONLY allowed experience facts
 
 GOAL
-Extract the most important JD keywords and naturally distribute them across TWO projects (TMU Pulse and Lectra) by selecting and (only when needed) lightly rephrasing bullets from the Master Resume. Avoid keyword stuffing. Aim for even keyword coverage across the 10 total bullets.
+Extract the most important JD keywords and naturally distribute them across TWO projects (TMU Pulse and Lectra) by selecting and (only when needed) lightly rephrasing bullets from the Master Resume.
+
+- Avoid keyword stuffing
+- Aim for even keyword coverage across the 10 total bullets
+- Bullets must read like real engineering accomplishments
 
 STRICT INTEGRITY RULES (NON-NEGOTIABLE)
-1) Truth Anchor: Use ONLY information explicitly present in the Master Resume for bullets and for “real” skills. Do NOT invent tools, features, responsibilities, timelines, or outcomes.
-2) Preserve the Root: You may rephrase wording to match JD terminology, but you MUST NOT change:
-   - the underlying action (what was done),
-   - the tool/tech used,
-   - the scope/ownership,
-   - or the outcome/impact described.
-3) Metric Locking: Every number, %, latency, count, or time value in MR must be preserved EXACTLY as written. No estimating. No rounding. No inflation.
-4) No Fabrication by Keyword: If a JD skill is not supported by MR, you must NOT imply experience with it in bullets.
+
+1) Truth Anchor
+- Use ONLY information explicitly present in the Master Resume for bullets and for “real” skills.
+- Do NOT invent tools, features, responsibilities, timelines, or outcomes.
+
+2) Preserve the Root
+- You may rephrase wording to match JD terminology, but you MUST NOT change:
+  - the underlying action (what was done),
+  - the tool/tech used,
+  - the scope/ownership,
+  - or the outcome/impact described.
+
+3) Metric Locking
+- Every number, %, latency, count, or time value in MR must be preserved EXACTLY as written.
+- No estimating. No rounding. No inflation.
+
+4) No Fabrication by Keyword
+- If a JD skill is not supported by MR, you must NOT imply experience with it in bullets.
 
 KEYWORD INTEGRATION RULES (ATS + HUMAN READABLE)
-1) Keyword Harvesting: From the JD, extract:
-   - Hard skills (languages, frameworks, cloud, databases, tooling)
-   - Practices (testing, CI/CD, monitoring, performance, security, analytics, etc.)
-   - Domain terms (e.g., “web performance”, “observability”, “distributed systems”)
-   - Collaboration terms (stakeholders, cross-functional, documentation)
-2) Natural Placement: Integrate keywords subtly in context (not as a list). Each bullet should read like a real engineering accomplishment.
-3) Even Distribution: Spread the strongest JD keywords across BOTH projects. Avoid clustering all keywords into one project.
-4) Anti-Repetition:
-   - Do NOT repeat the same JD keyword phrase excessively.
-   - Prefer varied verbs and phrasing.
-   - Repeating core tech names is allowed only when truly necessary for accuracy (e.g., **React**, **TypeScript**), but avoid repeating the same *keyword phrase* across many bullets.
-5) No Keyword Stuffing: No bullet should contain more than 2 “obvious” JD keywords.
+
+1) Keyword Harvesting
+From the JD, extract:
+- Hard skills (languages, frameworks, cloud, databases, tooling)
+- Practices (testing, CI/CD, monitoring, performance, security, analytics, etc.)
+- Domain terms (e.g., web performance, observability, distributed systems)
+- Collaboration terms (stakeholders, cross-functional, documentation)
+
+2) Natural Placement
+- Integrate keywords subtly in context, never as a list.
+- Each bullet should read like a realistic engineering outcome.
+
+3) Even Distribution
+- Spread the strongest JD keywords across BOTH projects.
+- Do not cluster all keywords into one project.
+
+4) Anti-Repetition
+- Do NOT repeat the same JD keyword phrase excessively.
+- Prefer varied verbs and phrasing.
+- Repeating core tech names is allowed only when necessary for accuracy (e.g., React, TypeScript).
+
+5) No Keyword Stuffing
+- No bullet may contain more than 2 obvious JD keywords.
 
 SELECTION RULES
+
 1) Choose EXACTLY:
-   - 5 bullets for "TMU Pulse"
-   - 5 bullets for "Lectra"
-2) Relevance over rewriting:
-   - If a bullet already matches the JD well, keep it unchanged.
-   - Only do minimal edits when it improves alignment with JD terminology.
-3) Coverage strategy:
-   - Prefer a set of bullets that collectively cover more unique JD keywords (without repetition).
-   - If multiple bullets are similar, pick the one with the strongest MR-backed impact/metric.
+- 5 bullets for TMU Pulse
+- 5 bullets for Lectra
+
+2) Relevance over rewriting
+- If a bullet already aligns well with the JD, keep it unchanged.
+- Only apply minimal edits when they improve JD alignment.
+
+3) Coverage strategy
+- Prefer bullets that collectively cover more unique JD keywords.
+- If bullets are similar, choose the one with the strongest MR-backed impact or metric.
 
 SKILLS RULES (ATS-OPTIMIZED BUT HONEST)
+
 You must output three comma-separated skill strings:
 
-A) "skill_languages"
+A) skill_languages
 - Include languages explicitly present in MR.
-- Additionally, if the JD includes a language NOT in MR, you MAY include it ONLY as: "LanguageName (interest)".
+- If the JD includes a language NOT in MR, you MAY include it ONLY as:
+  LanguageName (interest)
 
-B) "skill_frameworks"
-- Include frameworks/platforms/cloud/DBs explicitly present in MR.
-- Additionally, if the JD includes a framework/platform/cloud/DB NOT in MR, you MAY include it ONLY as: "ThingName (interest)".
+B) skill_frameworks
+- Include frameworks, platforms, cloud services, and databases explicitly present in MR.
+- If the JD includes one NOT in MR, you MAY include it ONLY as:
+  ThingName (interest)
 
-C) "skill_tools"
-- Include tools + practices explicitly present in MR.
-- Additionally, if the JD includes a tool/practice NOT in MR, you MAY include it ONLY as: "ThingName (interest)".
+C) skill_tools
+- Include tools and engineering practices explicitly present in MR.
+- If the JD includes tools or practices NOT in MR, you MAY include them ONLY as:
+  ThingName (interest)
 
-IMPORTANT LIMITS FOR “(interest)” ITEMS
-1) “(interest)” items must come from the JD (not random additions).
-2) Do NOT add more than 6 total “(interest)” items across ALL skill fields.
-3) Only add “(interest)” items that are HIGHLY relevant to the role and would improve ATS matching.
-4) Never place an “(interest)” keyword inside project bullets. Skills only.
-5) Never rewrite bullets in a way that implies hands-on use of an “(interest)” item.
+IMPORTANT LIMITS FOR (interest) ITEMS
+
+1) (interest) items must come directly from the JD.
+2) Across ALL skill fields combined, you may include up to 15 total (interest) items, with the majority expected to be tools or practices.
+3) Each (interest) item must clearly and defensibly relate to:
+- responsibilities implied by the MR, or
+- technologies adjacent to those already used in the MR.
+4) Never place an (interest) keyword inside project bullets.
+5) Never rewrite bullets in a way that implies hands-on use of an (interest) item.
+6) Do NOT include vague or low-signal practices (e.g., “best practices”, “agile mindset”).
 
 ORDERING RULE FOR SKILLS (VERY IMPORTANT)
+
 1) In each skills string, list REAL MR-backed skills first.
-2) Append ALL “(interest)” items at the END of that same string (after all real skills).
+2) Append ALL (interest) items at the END of that same string.
 3) Do not intermix real skills and interest skills.
 
 BOLDING RULE (APPLIES TO BULLETS AND SKILLS)
-Wrap in **double asterisks**:
+
+Wrap in double asterisks:
 1) Any technology/tool/framework/language that appears in BOTH the JD and your output.
-2) Any “core” technologies explicitly present in MR that define the work (even if not in JD).
+2) Any core technologies explicitly present in MR that define the work (even if not in JD).
 3) All hard metrics (%, ms, counts) inside bullets.
-4) If an item is “(interest)”, bold the keyword but keep the tag unbolded:
-   - Correct: **AWS** (interest)
-   - Wrong: **AWS (interest)**
+4) If an item is (interest), bold the keyword but keep the tag unbolded.
+Correct: **AWS** (interest)
+Wrong: **AWS (interest)**
 
 OUTPUT FORMAT
-Return ONLY valid JSON (no markdown). Strings only; no trailing commas.
+
+Return ONLY valid JSON (no markdown).
+Strings only. No trailing commas.
 
 JSON STRUCTURE:
 {
   "pulse_bullets": ["...", "...", "...", "...", "..."],
   "lectra_bullets": ["...", "...", "...", "...", "..."],
-  "skill_languages": "..., ..., ...",
-  "skill_frameworks": "..., ..., ...",
-  "skill_tools": "..., ..., ..."
+  "skill_languages": "...",
+  "skill_frameworks": "...",
+  "skill_tools": "..."
 }
