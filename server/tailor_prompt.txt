@@ -34,18 +34,19 @@ STRICT INTEGRITY RULES (NON-NEGOTIABLE)
 KEYWORD INTEGRATION RULES (ATS + HUMAN READABLE)
 
 1) Keyword Harvesting
-From the JD, extract:
-- Hard skills (languages, frameworks, cloud, databases, tooling)
-- Practices (testing, CI/CD, monitoring, performance, security, analytics, etc.)
-- Domain terms (e.g., web performance, observability, distributed systems)
-- Collaboration terms (stakeholders, cross-functional, documentation)
+From the JD, extract ONLY:
+- Hard technologies (languages, frameworks, cloud, databases, tooling)
+- Engineering practices directly tied to implementation (e.g., testing, CI/CD, performance)
+- Domain-specific technical terms (e.g., web performance, API design)
+
+Do NOT treat soft skills or values as keywords.
 
 2) Natural Placement
 - Integrate keywords subtly in context, never as a list.
-- Each bullet should read like a realistic engineering outcome.
+- Each bullet must read like a realistic engineering outcome.
 
 3) Even Distribution
-- Spread the strongest JD keywords across BOTH projects.
+- Spread the strongest JD technologies across BOTH projects.
 - Do not cluster all keywords into one project.
 
 4) Anti-Repetition
@@ -54,7 +55,7 @@ From the JD, extract:
 - Repeating core tech names is allowed only when necessary for accuracy (e.g., React, TypeScript).
 
 5) No Keyword Stuffing
-- No bullet may contain more than 2 obvious JD keywords.
+- No bullet may contain more than 2 obvious JD technologies.
 
 SELECTION RULES
 
@@ -64,10 +65,10 @@ SELECTION RULES
 
 2) Relevance over rewriting
 - If a bullet already aligns well with the JD, keep it unchanged.
-- Only apply minimal edits when they improve JD alignment.
+- Only apply minimal edits when they improve technical alignment.
 
 3) Coverage strategy
-- Prefer bullets that collectively cover more unique JD keywords.
+- Prefer bullets that collectively cover more unique JD technologies.
 - If bullets are similar, choose the one with the strongest MR-backed impact or metric.
 
 SKILLS RULES (ATS-OPTIMIZED BUT HONEST)
@@ -85,20 +86,23 @@ B) skill_frameworks
   ThingName (interest)
 
 C) skill_tools
-- Include tools and engineering practices explicitly present in MR.
-- If the JD includes tools or practices NOT in MR, you MAY include them ONLY as:
+- Include developer tools or infrastructure technologies explicitly present in MR.
+- If the JD includes one NOT in MR, you MAY include it ONLY as:
   ThingName (interest)
 
-IMPORTANT LIMITS FOR (interest) ITEMS
+STRICT LIMITS FOR (interest) ITEMS (VERY IMPORTANT)
 
-1) (interest) items must come directly from the JD.
-2) Across ALL skill fields combined, you may include up to 15 total (interest) items, with the majority expected to be tools or practices.
-3) Each (interest) item must clearly and defensibly relate to:
-- responsibilities implied by the MR, or
-- technologies adjacent to those already used in the MR.
-4) Never place an (interest) keyword inside project bullets.
-5) Never rewrite bullets in a way that implies hands-on use of an (interest) item.
-6) Do NOT include vague or low-signal practices (e.g., “best practices”, “agile mindset”).
+1) Across ALL skill fields combined, you may include a MAXIMUM of 5 total (interest) items.
+2) (interest) items MUST:
+   - Come directly from the JD, AND
+   - Be core technologies (languages, frameworks, platforms, databases, infra).
+3) Do NOT include:
+   - Soft skills
+   - Values (e.g., integrity, ownership)
+   - Vague practices (e.g., agile mindset, best practices)
+4) Every (interest) item must be clearly relevant and high-impact for the role.
+5) Never place an (interest) keyword inside project bullets.
+6) Never rewrite bullets in a way that implies hands-on use of an (interest) item.
 
 ORDERING RULE FOR SKILLS (VERY IMPORTANT)
 
@@ -129,3 +133,4 @@ JSON STRUCTURE:
   "skill_frameworks": "...",
   "skill_tools": "..."
 }
+"""
