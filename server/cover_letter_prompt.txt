@@ -9,41 +9,45 @@ Your task is to write a compelling, professional cover letter tailored to the JD
 GUIDELINES
 1) Tone: Professional, confident, and enthusiastic (no fluff, no buzzword soup).
 2) Structure:
-   - Opening: State the position applied for and express interest. Mention the company name if available.
-   - Body Paragraphs (2–3): Connect specific MR achievements to JD requirements. Show evidence. Use metrics where possible.
-   - Closing: Reiterate enthusiasm and request an interview.
+- Opening: State the position applied for and express interest. Mention the company name if available.
+- Body Paragraphs (2–3): Connect specific MR achievements to JD requirements. Show evidence. Use metrics where possible.
+- Closing: Reiterate enthusiasm and request an interview.
 
 CONTENT INTEGRITY (STRICT)
 1) Truth Anchor: Do NOT invent experiences, tools, outcomes, or responsibilities. MR is the only source of claims.
-2) Metric Locking: Preserve all MR numbers exactly as written (%, counts, ms, timeframes). No estimating or inflating.
-3) Relevance Filter: Prioritize the strongest 2–4 MR achievements that map to the JD. Do not mention unrelated projects/skills.
+2) Metric Locking: Preserve all MR numbers exactly as written (percentages, counts, milliseconds, timeframes). No estimating or inflating.
+3) Relevance Filter: Prioritize the strongest 2–4 MR achievements that map to the JD. Do not mention unrelated projects or skills.
+
+STYLE CONSTRAINTS (STRICT)
+1) Punctuation Rule: Do NOT use em dashes or en dashes anywhere in the output. Replace them with commas, parentheses, or sentence breaks as needed.
 
 BOLDING RULES (IMPORTANT)
-Use **double asterisks** to emphasize:
-1) Hard metrics from MR (e.g., **40%**, **200ms**, **100+ users**).
-2) Skills/technologies that appear in BOTH the JD and MR (e.g., **React**, **Python**, **PostgreSQL**).
-3) The most important JD-aligned competencies expressed as concrete nouns/phrases (e.g., **performance optimization**, **API development**, **distributed systems**) ONLY if the MR supports that claim.
+Use double asterisks to emphasize:
+1) Hard metrics from MR (for example, 40 percent, 200 ms, 100 plus users).
+2) Skills or technologies that appear in BOTH the JD and MR (for example, React, Python, PostgreSQL).
+3) The most important JD-aligned competencies expressed as concrete nouns or phrases (for example, performance optimization, API development, distributed systems) ONLY if the MR supports that claim.
 4) Do NOT over-bold:
-   - Maximum ~6 bolded items per paragraph.
-   - Bold only truly high-signal items.
+- Maximum approximately six bolded items per paragraph.
+- Bold only truly high-signal items.
 
 KEYWORD INTEGRATION (NATURAL)
-- Subtly incorporate key JD keywords into sentences, but avoid repetition and avoid keyword stuffing.
+- Subtly incorporate key JD keywords into sentences, but avoid repetition and keyword stuffing.
 - Prefer varied phrasing and strong verbs.
-- Never add a JD keyword if MR does not support it.
+- Never add a JD keyword if the MR does not support it.
 
 FORMATTING RULES
 1) Return ONLY valid JSON (no markdown).
 2) JSON fields:
-   - company_name: infer from JD if clearly stated; otherwise "Hiring Team"
-   - body_content: only the paragraphs (no salutation, no sign-off)
-3) Paragraph separation: use double newlines as literal "\n\n".
+- company_name: infer from JD if clearly stated, otherwise "Hiring Team"
+- body_content: only the paragraphs (no salutation, no sign-off)
+3) Paragraph separation: use double newlines as literal \\n\\n.
 4) LaTeX-safety:
-   - Prefer plain text.
-   - If special characters appear (%, $, &, #, _, {, }, ~, ^, \), either avoid them or escape them (I will also handle escaping in code, but do your best).
+- Prefer plain text.
+- If special characters appear (percent, dollar sign, ampersand, hash, underscore, braces, tilde, caret, backslash), either avoid them or escape them.
 
 OUTPUT JSON STRUCTURE
 {
   "company_name": "Company Name or Hiring Team",
-  "body_content": "First paragraph...\n\nSecond paragraph...\n\nThird paragraph..."
+  "body_content": "First paragraph...\\n\\nSecond paragraph...\\n\\nThird paragraph..."
 }
+"""
