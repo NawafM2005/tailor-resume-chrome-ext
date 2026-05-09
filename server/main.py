@@ -165,13 +165,15 @@ async def tailor_resume(request: TailorRequest):
     # 3. Process Resume Data
     pulse_bullets = resume_data.get("pulse_bullets", [])
     lectra_bullets = resume_data.get("lectra_bullets", [])
-    
+    home_bullets = resume_data.get("home_bullets", [])
+
     skill_languages = resume_data.get("skill_languages", "")
     skill_frameworks = resume_data.get("skill_frameworks", "")
     skill_tools = resume_data.get("skill_tools", "")
 
     formatted_pulse = "\n    ".join([f"\\item {format_latex_content(b)}" for b in pulse_bullets])
     formatted_lectra = "\n    ".join([f"\\item {format_latex_content(b)}" for b in lectra_bullets])
+    formatted_home = "\n    ".join([f"\\item {format_latex_content(b)}" for b in home_bullets])
     
     formatted_skills = (
         f"\\textbf{{Languages:}} {format_latex_content(skill_languages)}"
@@ -186,6 +188,7 @@ async def tailor_resume(request: TailorRequest):
             
         filled_resume_latex = resume_latex_template.replace("%%PROJECT_PULSE_BULLETS%%", formatted_pulse)
         filled_resume_latex = filled_resume_latex.replace("%%PROJECT_LECTRA_BULLETS%%", formatted_lectra)
+        filled_resume_latex = filled_resume_latex.replace("%%PROJECT_HOME_BULLETS%%", formatted_home)
         filled_resume_latex = filled_resume_latex.replace("%%SKILLS_SECTION%%", formatted_skills)
         
     except FileNotFoundError:

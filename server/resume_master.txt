@@ -1,5 +1,17 @@
 # RESUME MASTER DATA
 
+## Project: VisualBuild (Next.js 15, TypeScript, Tailwind CSS, shadcn/ui, Gemini 2.5 Flash, Supabase, Vercel)
+- Built a full-stack multi-tenant SaaS platform enabling home improvement contractors to generate AI-powered before/after renovation previews using Google Gemini 2.5 Flash image editing.
+- Engineered a per-category prompt template system with surface-scoped instructions (roof-only, driveway-only), minimizing AI hallucinations and off-surface edits across all upgrade categories.
+- Implemented Supabase Row-Level Security across all tables to enforce strict business-level data isolation, ensuring companies in a multi-tenant environment never access each other's generations.
+- Designed a three-input generation pipeline (customer house photo + material reference image + structured prompt) to produce photorealistic, dimensionally consistent renovation previews.
+- Architected soft-delete patterns on custom options to preserve full generation history without data loss when business-specific options are removed.
+- Built operator-only admin routes for managing businesses, employees, and monthly usage caps with automatic reset logic tracked at the business level.
+- Implemented per-business visibility controls for upgrade categories and custom options, enabling granular feature gating without schema changes.
+- Added public share links (revocable, unbranded) and before/after PDF export, delivering client-ready presentation assets directly from the contractor workflow.
+- Deployed on Vercel with Supabase backend, achieving per-project browsable generation history and low-latency AI image output.
+- Designed manual account creation flow with no self-serve sign-up, reducing abuse surface and giving operators full control over business onboarding.
+
 ## Project: TMU Pulse (Next.js, TypeScript, Supabase, PostgreSQL, Tailwind, Python, Web Scraping)
 - Launched a comprehensive academic planning dashboard adopted by 5,000+ active students, consolidating GPA tracking and scheduling into a unified React interface.
 - Orchestrated a targeted marketing campaign across Reddit and LinkedIn, achieving 15,000+ social interactions and securing a permanent spot in the university subreddit FAQ.

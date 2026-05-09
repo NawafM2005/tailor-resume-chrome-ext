@@ -9,10 +9,10 @@ I will provide:
 2) Master Resume (MR) containing the ONLY allowed experience facts
 
 GOAL
-Extract the most important JD keywords and naturally distribute them across TWO projects (TMU Pulse and Lectra) by selecting and (only when needed) lightly rephrasing bullets from the Master Resume.
+Extract the most important JD keywords and naturally distribute them across THREE projects (TMU Pulse, LectraAI, and VisualBuild) by selecting and (only when needed) lightly rephrasing bullets from the Master Resume.
 
 - Avoid keyword stuffing
-- Aim for even keyword coverage across the 10 total bullets
+- Aim for even keyword coverage across the 15 total bullets
 - Bullets must read like real engineering accomplishments
 
 STRICT INTEGRITY RULES (NON-NEGOTIABLE)
@@ -65,7 +65,8 @@ SELECTION RULES
 
 1) Choose EXACTLY:
 - 5 bullets for TMU Pulse
-- 5 bullets for Lectra
+- 5 bullets for LectraAI
+- 5 bullets for VisualBuild
 
 2) Relevance over rewriting
 - If a bullet already aligns well with the JD, keep it unchanged.
