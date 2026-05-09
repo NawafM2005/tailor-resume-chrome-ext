@@ -1,5 +1,13 @@
 # RESUME MASTER DATA
 
+## Project: SheetFlow (Next.js, React, Python, TypeScript, Tailwind CSS, Supabase, PostgreSQL)
+- Developing a multi-tenant SaaS platform that enables businesses to manage website content through structured spreadsheet data, synced in real time to a live-rendered PostgreSQL-backed frontend.
+- Implemented a component-based page renderer that dynamically assembles marketing pages from reusable UI sections driven entirely by external spreadsheet schemas with color-coded row types.
+- Built multi-tenant domain routing middleware that resolves tenant configuration per incoming request, serving multiple branded sites from a single Next.js codebase.
+- Created internal preview and debugging tooling to validate UI module layout and content mapping before publishing updates to production.
+- Engineered a real-time sync pipeline between spreadsheet data sources and PostgreSQL, ensuring frontend content reflects the latest business-controlled updates without a deploy cycle.
+- Designed a schema-driven content model that decouples page structure from application code, enabling non-technical users to update live marketing content through familiar spreadsheet tooling.
+
 ## Project: VisualBuild (Next.js 15, TypeScript, Tailwind CSS, shadcn/ui, Gemini 2.5 Flash, Supabase, Vercel)
 - Built a full-stack multi-tenant SaaS platform enabling home improvement contractors to generate AI-powered before/after renovation previews using Google Gemini 2.5 Flash image editing.
 - Engineered a per-category prompt template system with surface-scoped instructions (roof-only, driveway-only), minimizing AI hallucinations and off-surface edits across all upgrade categories.
