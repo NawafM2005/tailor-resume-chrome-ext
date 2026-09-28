@@ -132,10 +132,9 @@ def build_resume(client, model, job_text, master_resume):
     )
     data = call_openai_json(client, model, full_prompt, "resume")
 
+    # Only the Technical Skills lines are tailored; all bullets are fixed in the
+    # generator. Empty strings fall back to the master defaults in the script.
     content = {
-        "sanofi_bullets": data.get("sanofi_bullets", []),
-        "visualbuild_bullets": data.get("visualbuild_bullets", []),
-        "pulse_bullets": data.get("pulse_bullets", []),
         "skill_languages": data.get("skill_languages", ""),
         "skill_frameworks": data.get("skill_frameworks", ""),
         "skill_backend": data.get("skill_backend", ""),

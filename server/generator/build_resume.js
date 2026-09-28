@@ -4,16 +4,15 @@
  * Usage:
  *   node build_resume.js <content.json> <out.docx>
  *
- * <content.json> supplies ONLY the tailored parts (bullets + skills). Every
- * other section (header, education, research and activities) is fixed here so
- * the layout, font, spacing and margins always match the master design.
+ * The resume bullets are FIXED here (identical to the master resume PDF). The
+ * ONLY tailored part is the Technical Skills section: the model reorders the
+ * real skills to surface the most job-relevant ones and appends "(interest)"
+ * items for job technologies that are not already on the resume. Any heavier,
+ * job-specific rephrasing belongs in the cover letter, not here.
  *
- * Content JSON shape:
+ * Content JSON shape (all optional; sensible defaults below):
  * {
- *   "sanofi_bullets":      ["...", ...],   // may contain **bold** markup
- *   "visualbuild_bullets": ["...", ...],
- *   "pulse_bullets":       ["...", ...],
- *   "skill_languages":  "a, b, c",         // may contain **bold** markup
+ *   "skill_languages":  "a, b, c",
  *   "skill_frameworks": "...",
  *   "skill_backend":    "...",
  *   "skill_tools":      "..."
@@ -24,8 +23,7 @@
  *   spacing    = twips (1440 = 1in) -> margin: 540 means 0.375in
  *   line: 212  = ~1.06x line height
  *
- * MUST STAY ONE PAGE. Keep bullet counts modest (the tailoring prompt caps
- * them at Sanofi 4 / VisualBuild 4 / TMU Pulse 3).
+ * MUST STAY ONE PAGE.
  * ------------------------------------------------------------------------- */
 
 const fs = require('fs');
@@ -47,10 +45,11 @@ if (!contentPath || !outPath) {
 }
 let content = {};
 try {
-  content = JSON.parse(fs.readFileSync(contentPath, "utf8"));
+  if (contentPath && fs.existsSync(contentPath)) {
+    content = JSON.parse(fs.readFileSync(contentPath, "utf8"));
+  }
 } catch (e) {
-  console.error("Failed to read content JSON:", e.message);
-  process.exit(1);
+  console.error("Failed to read content JSON, using defaults:", e.message);
 }
 
 // ---- helpers ----
@@ -109,28 +108,31 @@ function skillLine(label, restMarkup) {
   return new Paragraph({ spacing: { after: 12 }, children: [b(label + ": "), ...runs(restMarkup)] });
 }
 
-// Turn a list of markup strings into bullet paragraphs; tolerate empties.
-function bulletList(items, fallback) {
-  const list = Array.isArray(items) ? items.filter(x => clean(x) !== "") : [];
-  const use = list.length ? list : (fallback || []);
-  return use.map(bulletFrom);
-}
+// ---- FIXED resume bullets (bold matches the master resume PDF) ----
+const SANOFI = [
+  "Shipped **full-stack features** to **Newton (Talk to Data)**, Sanofi's company-wide AI platform, including a **prompt library**, a **chart-widget dashboard**, and **Microsoft Graph** integration for access groups",
+  "Led **TraceReview** end-to-end (planning, development, testing) with a 3-intern team, an **agent-observability tool** (**React**, **Python**) tracing **15+ Snowflake AI agents**, surfacing reasoning, SQL queries, results, and charts in one view",
+  "Architected it as a **general-purpose platform** for **any AI agent across Sanofi**; already adopted by a **second org beyond Newton** to trace their own agents",
+  "Built **automated ETL pipelines** for the **CX Data & AI team**, unifying **15+ sources** (**SharePoint**, **Google Analytics**, internal systems) into one **database** powering **React / Power BI dashboards**",
+];
+const VISUALBUILD = [
+  "A **multi-tenant AI SaaS** for contractors that turns one property photo into a photorealistic renovation preview in **~30 seconds** across **21 categories**, replacing a **$200+, multi-day** designer render; **iOS app live on the App Store**",
+  "Integrated **Gemini and OpenAI APIs** for image generation and **Stripe** for subscription billing, processing **500+ renders** with a **backup-model fallback** that keeps generation success near **100%** when a provider is overloaded",
+  "Architected a **server-side-only AI pipeline** so API keys never reach the client and model changes deploy without a mobile redeploy, with a render flow that survives client disconnects and resurfaces jobs on refetch",
+  "Designed an isolated **multi-tenant Postgres schema** with **Row-Level Security** on every table plus **JWT bearer-token auth** shared across web and iOS, guaranteeing businesses can never access each other's data",
+  "Built an **address-to-render pipeline** on the Google Places and Street View APIs (preview from an address, no upload) and shipped the full surface with **Vitest** + **Playwright** tests",
+];
+const PULSE = [
+  "A **full-stack academic planning platform** for university students that unifies GPA tracking, schedule building, course discovery, and degree planning, serving **1,000+ active students** and **30,000+ visits** at **~100 daily**",
+  "Engineered a modular architecture spanning a course catalogue, GPA tracker, degree planner, transcript analyzer, and **Rate My Professors** integration, with **automated rating and course-data aggregation**",
+  "Built a Python and PostgreSQL data pipeline processing **3,700+ course records** across **100+ departments**, with scraping, normalization, and indexing that hold **sub-second load times** at scale",
+];
 
-// ---- pull tailored content (with safe fallbacks) ----
-const sanofiBullets = bulletList(content.sanofi_bullets, [
-  "Shipped full-stack features to Sanofi's company-wide AI platform.",
-]);
-const visualbuildBullets = bulletList(content.visualbuild_bullets, [
-  "Built a multi-tenant AI SaaS for contractors; iOS app live on the App Store.",
-]);
-const pulseBullets = bulletList(content.pulse_bullets, [
-  "Built a full-stack academic planning platform for university students.",
-]);
-
-const skillLanguages = content.skill_languages || "Python, C/C++, Java, TypeScript, JavaScript, SQL";
-const skillFrameworks = content.skill_frameworks || "React, Next.js (App Router), React Native (Expo), Node.js, FastAPI, Tailwind CSS, React Query";
-const skillBackend = content.skill_backend || "PostgreSQL, Supabase (Auth, Storage, RLS, Edge Functions), pgvector, REST APIs, ETL pipelines";
-const skillTools = content.skill_tools || "AWS, Snowflake, Docker, CI/CD, Git/GitHub, Power BI, Jira, Confluence, Figma, Agile/Scrum";
+// ---- Skills: tailored (values from JSON) with fixed fallbacks ----
+const skillLanguages = clean(content.skill_languages) || "Python, C/C++, Java, TypeScript, JavaScript, SQL";
+const skillFrameworks = clean(content.skill_frameworks) || "React, Next.js (App Router), React Native (Expo), Node.js, FastAPI, Tailwind CSS, React Query";
+const skillBackend = clean(content.skill_backend) || "PostgreSQL, Supabase (Auth, Storage, RLS, Edge Functions), pgvector, REST APIs, ETL pipelines";
+const skillTools = clean(content.skill_tools) || "AWS, Snowflake, Docker, CI/CD, Git/GitHub, Power BI, Jira, Confluence, Figma, Agile/Scrum";
 
 const doc = new Document({
   numbering: { config: [{ reference: "bullets", levels: [{
@@ -155,7 +157,7 @@ const doc = new Document({
               new TextRun({ text: "CGPA: 4.10/4.33", italics: true, bold: true, size: 21, font: "Calibri" })],
               "Expected Graduation: May 2028", 26),
       bullet([b("Related Coursework: "), t("Data Structures & Algorithms, Object-Oriented Programming, Software Engineering, Operating Systems")]),
-      bullet([b("Honours: "), t("Dean's List 2023-2026")]),
+      bullet([b("Honours: "), t("Dean's List 2023–2026")]),
 
       sectionHeader("Technical Skills"),
       skillLine("Languages", skillLanguages),
@@ -167,7 +169,7 @@ const doc = new Document({
       orgRow("Sanofi", "Toronto, Canada", 20),
       subRow([new TextRun({ text: "Full-Stack Software Developer Intern | Teams: CX Data & AI, Data & AI Solutions", size: 21, font: "Calibri" })],
              "May 2026 - Present", 30),
-      ...sanofiBullets,
+      ...SANOFI.map(bulletFrom),
 
       sectionHeader("Projects"),
       new Paragraph({ tabStops: [{ type: TabStopType.RIGHT, position: RIGHT }], spacing: { after: 0, before: 20 }, children: [
@@ -176,22 +178,22 @@ const doc = new Document({
       ] }),
       subRow([new TextRun({ text: "Next.js, TypeScript, Tailwind, Supabase, React Native (Expo), Gemini & OpenAI API", italics: true, size: 21, font: "Calibri" })],
              "April 2026 - Present", 30),
-      ...visualbuildBullets,
+      ...VISUALBUILD.map(bulletFrom),
 
       new Paragraph({ tabStops: [{ type: TabStopType.RIGHT, position: RIGHT }], spacing: { after: 0, before: 60 }, children: [
         link("TMU Pulse", "https://tmupulse.ca", { bold: true }),
       ] }),
       subRow([new TextRun({ text: "Python, Next.js, TypeScript, PostgreSQL, Supabase, React, Tailwind CSS", italics: true, size: 21, font: "Calibri" })],
              "Jun 2025 - Present", 30),
-      ...pulseBullets,
+      ...PULSE.map(bulletFrom),
 
       sectionHeader("Research & Activities"),
       new Paragraph({ tabStops: [{ type: TabStopType.RIGHT, position: RIGHT }], spacing: { after: 10, before: 20 }, children: [
         b("Genome-Assembly Verification "), new TextRun({ text: "- Research with Prof. E. Harley, TMU", size: 21, font: "Calibri" }),
         new TextRun({ text: "\t2026", italics: true, size: 21, font: "Calibri" }),
       ] }),
-      bullet([t("Built a "), b("genome-assembly pipeline"), t(" (Python, fastp, SPAdes, BLAST, minimap2) to verify a KanMX6 gene knockout in fission yeast across 6 sequencing pools, validated at "), b("99.8% identity"), t(" to the reference genome")]),
-      bullet([t("Proved the target gene was "), b("not fully replaced"), t(" (coverage stayed near baseline vs. 0x expected) and traced a reproducible off-target integration to a second locus across both edited pools")]),
+      bullet([t("Built a "), b("genome-assembly pipeline"), t(" ("), b("Python"), t(", fastp, SPAdes, BLAST, minimap2) to verify a "), b("KanMX6 gene knockout"), t(" in fission yeast across "), b("6 sequencing pools"), t(", validated at "), b("99.8% identity"), t(" to the reference genome")]),
+      bullet([t("Proved the target gene was "), b("not fully replaced"), t(" (coverage stayed near baseline vs. 0× expected) and traced a "), b("reproducible off-target integration"), t(" to a second locus across both edited pools")]),
 
       new Paragraph({ tabStops: [{ type: TabStopType.RIGHT, position: RIGHT }], spacing: { after: 10, before: 12 }, children: [
         b("AWS Certified Solutions Architect - Associate (SAA-C03)"),
@@ -201,8 +203,8 @@ const doc = new Document({
         b("RepPal "), new TextRun({ text: "- 1st Place, Sanofi x Snowflake Hackathon", size: 21, font: "Calibri" }),
         new TextRun({ text: "\t2026", italics: true, size: 21, font: "Calibri" }),
       ] }),
-      bullet([t("Won "), b("1st place"), t(" with an AI recommendation system telling pharma reps which physicians to approach for consent under Canada's one-shot CASL law, backed by a consent-propensity model on Snowflake scoring "), b("~300K physicians"), t(" (0.85 AUC)")]),
-      bullet([t("Built a sales-rep view (a web-enrichment agent feeding a personalized outreach strategy) and an admin view with analytics and a "), b("Snowflake Cortex"), t(" chatbot")]),
+      bullet([t("Won "), b("1st place"), t(" with an "), b("AI recommendation system"), t(" telling pharma reps which physicians to approach for consent under Canada's one-shot "), b("CASL"), t(" law, backed by a "), b("consent-propensity model on Snowflake"), t(" scoring "), b("~300K physicians"), t(" ("), b("0.85 AUC"), t(")")]),
+      bullet([t("Built a "), b("sales-rep view"), t(" (a "), b("web-enrichment agent"), t(" feeding a "), b("personalized outreach strategy"), t(") and an "), b("admin view"), t(" with analytics and a "), b("Snowflake Cortex"), t(" chatbot")]),
     ],
   }],
 });

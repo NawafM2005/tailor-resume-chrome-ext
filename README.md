@@ -3,10 +3,12 @@
 A Chrome extension + FastAPI backend that tailors Nawaf's resume and cover letter
 to any job description and downloads polished PDFs.
 
-Given a job description, the backend asks an LLM to select and lightly reword the
-strongest, most relevant bullets from a fixed master resume (never fabricating
-facts or metrics), then renders the result to a `.docx` using the same design as
-`build-resume.js` and converts it to PDF with headless LibreOffice.
+Given a job description, the backend keeps the resume bullets exactly as written
+and tailors **only the Technical Skills section** (reordering the real skills for
+relevance and adding job-specific technologies as `(interest)` items). It renders
+the result to a `.docx` using the same design as `build-resume.js` and converts
+it to PDF with headless LibreOffice. Heavier, job-specific narrative goes into the
+cover letter, which is fully tailored.
 
 ## Structure
 
@@ -20,8 +22,8 @@ facts or metrics), then renders the result to a `.docx` using the same design as
 ## How it works
 
 1. Extension sends the job description + a mode (`both` / `resume` / `cover`).
-2. Backend calls the LLM for tailored bullets + skills (resume) and/or a cover
-   letter body, as strict JSON.
+2. Backend calls the LLM for the tailored **Skills** lines (resume) and/or a
+   cover letter body, as strict JSON. Resume bullets are fixed in the generator.
 3. `generator/build_resume.js` / `build_cover_letter.js` render `.docx` files
    with the master design (Calibri, fixed margins/spacing, one page).
 4. Headless LibreOffice converts each `.docx` to PDF.
@@ -76,8 +78,11 @@ detected.
 - Resume and cover letter fail independently.
 
 ## Content integrity
-- The LLM may only use facts in `resume_master.txt`.
-- Every metric is preserved exactly.
-- Keywords from the job description are only woven in when the master already
-  supports them (or an obvious synonym); job-specific technologies that are not
-  already present may appear in the Skills section only, tagged `(interest)`.
+- Resume experience/project bullets are **fixed** (identical to the master PDF);
+  the model never rewrites them.
+- Tailoring is limited to the Technical Skills section: real skills are only
+  reordered (never dropped), and job technologies not already on the resume may
+  be added as `(interest)` items (max 5).
+- The cover letter (which uses the full `resume_master.txt` facts) is where
+  job-specific rephrasing happens; it still preserves every metric exactly and
+  never invents experience.
