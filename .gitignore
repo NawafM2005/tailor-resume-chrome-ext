@@ -6,3 +6,7 @@ __pycache__/
 *.log
 *.out
 .DS_Store
+
+# node
+node_modules/
+generator/node_modules/

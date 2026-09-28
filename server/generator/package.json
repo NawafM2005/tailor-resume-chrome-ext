@@ -1,0 +1,14 @@
+{
+  "name": "resume-tailor-generator",
+  "version": "2.0.0",
+  "private": true,
+  "description": "docx generators for the tailored resume and cover letter",
+  "main": "build_resume.js",
+  "scripts": {
+    "build:resume": "node build_resume.js",
+    "build:cover": "node build_cover_letter.js"
+  },
+  "dependencies": {
+    "docx": "^9.8.0"
+  }
+}
