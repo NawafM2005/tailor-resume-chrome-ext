@@ -23,9 +23,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
     const run = { cancelled: false, abortCurrent: null, wake: null };
     currentRun = run;
+    // MV3 kills an idle service worker after ~30s, and a pending fetch doesn't
+    // count as activity. Touch an extension API periodically so the worker
+    // survives the (slow) server response and can still download the PDFs.
+    const keepAlive = setInterval(() => chrome.runtime.getPlatformInfo(() => {}), 20000);
     handleGenerate(run, request.jobText, request.mode || "both")
       .catch((err) => console.error("Unhandled generate error:", err))
-      .finally(() => { if (currentRun === run) currentRun = null; });
+      .finally(() => {
+        clearInterval(keepAlive);
+        if (currentRun === run) currentRun = null;
+      });
     sendResponse({ status: "started" });
     return true; // keep the channel open
   }
