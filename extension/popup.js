@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
   els.extract = document.getElementById("btn-extract");
   els.clear = document.getElementById("btn-clear");
   els.generate = document.getElementById("btn-generate");
+  els.cancel = document.getElementById("btn-cancel");
   els.generateLabel = document.getElementById("generate-label");
   els.job = document.getElementById("job-text");
   els.status = document.getElementById("status");
@@ -19,6 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
     els.job.focus();
   });
   els.generate.addEventListener("click", generate);
+  els.cancel.addEventListener("click", cancelGenerate);
 
   els.job.addEventListener("input", () => {
     chrome.storage.local.set({ jobText: els.job.value });
@@ -135,6 +137,22 @@ function generate() {
   });
 }
 
+function cancelGenerate() {
+  els.cancel.disabled = true;
+  chrome.runtime.sendMessage({ action: "cancel" }, () => {
+    els.cancel.disabled = false;
+    if (chrome.runtime.lastError) {
+      setBusy(false);
+      setStatus("Error: " + chrome.runtime.lastError.message, false);
+      return;
+    }
+    // The background broadcasts the reset state too; apply locally in case the popup missed it.
+    setBusy(false);
+    els.results.classList.add("hidden");
+    setStatus("Cancelled. You can try again.", false);
+  });
+}
+
 function applyRunState(state) {
   if (!state) return;
   setBusy(!!state.busy);
@@ -169,5 +187,6 @@ function setStatus(text, busy) {
 function setBusy(busy) {
   els.generate.disabled = busy;
   els.extract.disabled = busy;
+  els.cancel.classList.toggle("hidden", !busy);
   els.status.classList.toggle("busy", busy);
 }

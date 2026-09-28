@@ -11,37 +11,64 @@ const COVER_FILENAME = "Nawaf_Mahmood_Cover_Letter.pdf";
 const REQUEST_TIMEOUT_MS = 150000; // Render free tier can cold-start slowly.
 const MAX_ATTEMPTS = 3;
 
-let running = false;
+// The active run: { cancelled, abortCurrent, wake }. Null when idle.
+let currentRun = null;
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request && request.action === "generate") {
-    if (running) {
+  if (!request) return;
+  if (request.action === "generate") {
+    if (currentRun) {
       sendResponse({ status: "busy" });
       return; // no async work started
     }
-    running = true;
-    handleGenerate(request.jobText, request.mode || "both")
+    const run = { cancelled: false, abortCurrent: null, wake: null };
+    currentRun = run;
+    handleGenerate(run, request.jobText, request.mode || "both")
       .catch((err) => console.error("Unhandled generate error:", err))
-      .finally(() => { running = false; });
+      .finally(() => { if (currentRun === run) currentRun = null; });
     sendResponse({ status: "started" });
     return true; // keep the channel open
   }
+  if (request.action === "cancel") {
+    cancelRun();
+    sendResponse({ status: "cancelled" });
+  }
 });
 
-function broadcast(state) {
+function cancelRun() {
+  const run = currentRun;
+  currentRun = null; // free up immediately so a new run can start
+  if (run) {
+    run.cancelled = true;
+    if (run.abortCurrent) run.abortCurrent();
+    if (run.wake) run.wake();
+  }
+  // Also resets a stale "busy" state left behind if the worker was restarted mid-run.
+  broadcast({ busy: false, cancelled: true, message: "Cancelled. You can try again.", results: {}, errors: {} });
+}
+
+// Ignores updates from a run that has been cancelled.
+function broadcast(state, run) {
+  if (run && run.cancelled) return;
   chrome.storage.local.set({ lastRun: state });
   // Messaging a closed popup throws; swallow it.
   chrome.runtime.sendMessage({ type: "tailor-status", state }).catch(() => {});
 }
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+// Resolves after ms, or early if the run is cancelled.
+function sleep(ms, run) {
+  return new Promise((resolve) => {
+    const timer = setTimeout(resolve, ms);
+    run.wake = () => { clearTimeout(timer); resolve(); };
+  });
 }
 
-async function postTailor(jobText, mode) {
+async function postTailor(run, jobText, mode) {
   let lastErr = null;
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    if (run.cancelled) throw new Error("Cancelled");
     const controller = new AbortController();
+    run.abortCurrent = () => controller.abort();
     const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
       const res = await fetch(API_URL, {
@@ -54,18 +81,19 @@ async function postTailor(jobText, mode) {
 
       // Retry transient server / gateway errors (cold start, restarts).
       if ([502, 503, 504].includes(res.status) && attempt < MAX_ATTEMPTS) {
-        broadcast({ busy: true, mode, message: `Server waking up, retrying (${attempt}/${MAX_ATTEMPTS - 1})...`, results: {}, errors: {} });
-        await sleep(2500 * attempt);
+        broadcast({ busy: true, mode, message: `Server waking up, retrying (${attempt}/${MAX_ATTEMPTS - 1})...`, results: {}, errors: {} }, run);
+        await sleep(2500 * attempt, run);
         continue;
       }
       return res;
     } catch (err) {
       clearTimeout(timer);
+      if (run.cancelled) throw new Error("Cancelled");
       lastErr = err;
       const reason = err.name === "AbortError" ? "timed out" : "connection failed";
       if (attempt < MAX_ATTEMPTS) {
-        broadcast({ busy: true, mode, message: `Request ${reason}, retrying (${attempt}/${MAX_ATTEMPTS - 1})...`, results: {}, errors: {} });
-        await sleep(2000 * attempt);
+        broadcast({ busy: true, mode, message: `Request ${reason}, retrying (${attempt}/${MAX_ATTEMPTS - 1})...`, results: {}, errors: {} }, run);
+        await sleep(2000 * attempt, run);
         continue;
       }
     }
@@ -90,22 +118,25 @@ function downloadPdf(base64Data, filename) {
   });
 }
 
-async function handleGenerate(jobText, mode) {
+async function handleGenerate(run, jobText, mode) {
   const state = { busy: true, mode, message: "Contacting server...", results: {}, errors: {} };
-  broadcast(state);
+  broadcast(state, run);
 
   let res;
   try {
-    res = await postTailor(jobText, mode);
+    res = await postTailor(run, jobText, mode);
   } catch (err) {
+    if (run.cancelled) return;
     state.busy = false;
     state.message = err.name === "AbortError"
       ? "Server took too long to respond. Please try again."
       : "Could not reach the server. Check your connection and try again.";
     state.errors = { resume: state.message, cover_letter: state.message };
-    broadcast(state);
+    broadcast(state, run);
     return;
   }
+
+  if (run.cancelled) return;
 
   if (!res.ok) {
     let detail = `Server error (${res.status})`;
@@ -115,10 +146,11 @@ async function handleGenerate(jobText, mode) {
     } catch (_) {
       try { detail = (await res.text()) || detail; } catch (__) {}
     }
+    if (run.cancelled) return;
     state.busy = false;
     state.message = detail;
     state.errors = { resume: detail, cover_letter: detail };
-    broadcast(state);
+    broadcast(state, run);
     return;
   }
 
@@ -126,16 +158,18 @@ async function handleGenerate(jobText, mode) {
   try {
     data = await res.json();
   } catch (err) {
+    if (run.cancelled) return;
     state.busy = false;
     state.message = "Server returned an unreadable response.";
     state.errors = { resume: state.message, cover_letter: state.message };
-    broadcast(state);
+    broadcast(state, run);
     return;
   }
 
+  if (run.cancelled) return;
   state.message = "Downloading...";
   state.errors = data.errors || {};
-  broadcast(state);
+  broadcast(state, run);
 
   // Download whatever came back. One failing does not block the other.
   if (data.resume) {
@@ -148,6 +182,8 @@ async function handleGenerate(jobText, mode) {
     }
   }
 
+  if (run.cancelled) return;
+
   if (data.cover_letter) {
     try {
       await downloadPdf(data.cover_letter, COVER_FILENAME);
@@ -157,6 +193,8 @@ async function handleGenerate(jobText, mode) {
       state.errors.cover_letter = "Download failed: " + err.message;
     }
   }
+
+  if (run.cancelled) return;
 
   // Compose a final summary message.
   const want = {
@@ -180,5 +218,5 @@ async function handleGenerate(jobText, mode) {
 
   state.busy = false;
   state.message = message;
-  broadcast(state);
+  broadcast(state, run);
 }
