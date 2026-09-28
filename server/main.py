@@ -1,14 +1,12 @@
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
 import json
+import time
+import shutil
 import subprocess
 import tempfile
-import shutil
-import re
-import zipfile
-import io
 import base64
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -16,233 +14,242 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Debug: Check if key is loaded
 if not os.getenv("OPENAI_API_KEY"):
     print("WARNING: OPENAI_API_KEY not found in environment variables.")
 else:
     print("SUCCESS: OPENAI_API_KEY loaded.")
 
-app = FastAPI()
+app = FastAPI(title="Resume Tailor API", version="2.0")
 
 # Allow CORS for the extension
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, restrict to extension ID
-    allow_credentials=True,
+    allow_origins=["*"],  # In production, restrict to the extension ID
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Directory that holds resume_master.txt, the prompts and the generator/ scripts.
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+GEN_DIR = os.path.join(BASE_DIR, "generator")
+NODE_BIN = os.getenv("NODE_BIN", "node")
+SOFFICE_BIN = os.getenv("SOFFICE_BIN", "soffice")
+
+
 class TailorRequest(BaseModel):
     job_text: str
+    # Primary control. One of: "both" | "resume" | "cover".
+    mode: str | None = None
+    # Legacy flag kept for backward compatibility with older extension builds.
     include_cover_letter: bool = False
 
-def escape_latex(text):
-    """
-    Escapes special characters for LaTeX.
-    """
-    if not isinstance(text, str):
-        return str(text)
-    
-    # Remove control characters like \x07 (Bell) which cause LaTeX errors
-    # Keep newlines, tabs, and printable characters
-    text = "".join(ch for ch in text if ch.isprintable() or ch in '\n\t')
 
-    chars = {
-        '&': r'\&',
-        '%': r'\%',
-        '$': r'\$',
-        '#': r'\#',
-        '_': r'\_',
-        '{': r'\{',
-        '}': r'\}',
-        '~': r'\textasciitilde{}',
-        '^': r'\textasciicircum{}',
-        '\\': r'\textbackslash{}',
-    }
-    pattern = re.compile('|'.join(re.escape(key) for key in chars.keys()))
-    return pattern.sub(lambda x: chars[x.group()], text)
+# --------------------------------------------------------------------------- #
+#  File + document helpers
+# --------------------------------------------------------------------------- #
+def read_server_file(name):
+    with open(os.path.join(BASE_DIR, name), "r", encoding="utf-8") as f:
+        return f.read()
 
-def format_latex_content(text):
-    """
-    Escapes LaTeX special chars and converts **bold** to \textbf{bold}.
-    """
-    # 1. Escape special characters first
-    escaped = escape_latex(text)
-    
-    # 2. Convert **text** to \textbf{text}
-    # We use a regex that looks for **...**
-    # Note: escape_latex does not escape *, so ** remains **
-    # We must escape the backslash for re.sub replacement string (\\textbf)
-    bolded = re.sub(r'\*\*(.*?)\*\*', r'\\textbf{\1}', escaped)
-    
-    return bolded
 
-def compile_latex(latex_content, filename="document"):
-    """
-    Compiles LaTeX content to PDF bytes.
-    """
-    print(f"📝 Compiling LaTeX to PDF ({filename})...")
-    with tempfile.TemporaryDirectory() as temp_dir:
-        tex_path = os.path.join(temp_dir, f"{filename}.tex")
-        pdf_path = os.path.join(temp_dir, f"{filename}.pdf")
-        
-        with open(tex_path, "w") as f:
-            f.write(latex_content)
-            
-        # Run pdflatex twice to ensure layout is correct
-        try:
-            for i in range(2):
-                # print(f"  Running pdflatex (pass {i+1}/2)...")
-                subprocess.run(
-                    ["pdflatex", "-interaction=nonstopmode", "-output-directory", temp_dir, tex_path],
-                    check=True,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE
-                )
-        except subprocess.CalledProcessError as e:
-            print(f"LaTeX Error: {e.stdout.decode()} {e.stderr.decode()}")
-            raise HTTPException(status_code=500, detail=f"LaTeX compilation failed for {filename}")
-            
-        if not os.path.exists(pdf_path):
-             raise HTTPException(status_code=500, detail=f"PDF not generated for {filename}")
+def run_node(script, content_obj, out_docx, workdir):
+    """Render a .docx by handing the tailored content to a generator script."""
+    content_path = os.path.join(workdir, "content.json")
+    with open(content_path, "w", encoding="utf-8") as f:
+        json.dump(content_obj, f)
 
-        with open(pdf_path, "rb") as f:
-            pdf_bytes = f.read()
-            
-    return pdf_bytes
-
-@app.get("/health")
-def health_check():
-    return {"status": "ok"}
-
-@app.post("/tailor")
-async def tailor_resume(request: TailorRequest):
-    print("📥 Received tailoring request")
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
-    
-    client = OpenAI(api_key=api_key)
-    model = os.getenv("MODEL", "gpt-4o")
-
-    # 1. Read Master Resume & Prompts
-    print("📄 Reading template files...")
     try:
-        with open("resume_master.txt", "r") as f:
-            master_resume = f.read()
-        with open("tailor_prompt.txt", "r") as f:
-            resume_prompt_template = f.read()
-        
-        cover_letter_prompt_template = ""
-        if request.include_cover_letter:
-            with open("cover_letter_prompt.txt", "r") as f:
-                cover_letter_prompt_template = f.read()
-                
-    except FileNotFoundError:
-        raise HTTPException(status_code=500, detail="Server files missing")
-
-    # 2. Call OpenAI for Resume
-    print("🤖 Calling OpenAI API for Resume...")
-    resume_full_prompt = f"{resume_prompt_template}\n\nJOB DESCRIPTION:\n{request.job_text}\n\nMASTER RESUME:\n{master_resume}"
-    
-    try:
-        completion = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant that outputs strict JSON."},
-                {"role": "user", "content": resume_full_prompt}
-            ],
-            response_format={"type": "json_object"}
+        subprocess.run(
+            [NODE_BIN, os.path.join(GEN_DIR, script), content_path, out_docx],
+            check=True, capture_output=True, timeout=60, cwd=GEN_DIR,
         )
-        resume_content = completion.choices[0].message.content
-        resume_data = json.loads(resume_content)
-        print("✅ OpenAI response received for Resume")
-    except Exception as e:
-        print(f"OpenAI Error (Resume): {e}")
-        raise HTTPException(status_code=500, detail=f"AI Generation failed: {str(e)}")
+    except subprocess.TimeoutExpired:
+        raise RuntimeError(f"{script} timed out")
+    except subprocess.CalledProcessError as e:
+        log = (e.stdout.decode(errors="ignore") + e.stderr.decode(errors="ignore"))
+        raise RuntimeError(f"{script} failed: {log[-800:]}")
 
-    # 3. Process Resume Data
-    pulse_bullets = resume_data.get("pulse_bullets", [])
-    lectra_bullets = resume_data.get("lectra_bullets", [])
-    
-    skill_languages = resume_data.get("skill_languages", "")
-    skill_frameworks = resume_data.get("skill_frameworks", "")
-    skill_tools = resume_data.get("skill_tools", "")
+    if not os.path.exists(out_docx):
+        raise RuntimeError(f"{script} did not produce a .docx")
 
-    formatted_pulse = "\n    ".join([f"\\item {format_latex_content(b)}" for b in pulse_bullets])
-    formatted_lectra = "\n    ".join([f"\\item {format_latex_content(b)}" for b in lectra_bullets])
-    
-    formatted_skills = (
-        f"\\textbf{{Languages:}} {format_latex_content(skill_languages)}"
-        f"\n    \\item \\textbf{{Frameworks \& Platforms:}} {format_latex_content(skill_frameworks)}"
-        f"\n    \\item \\textbf{{Practices \& Tools:}} {format_latex_content(skill_tools)}"
-    )
 
-    # 4. Fill Resume Template
+def docx_to_pdf(docx_path, workdir):
+    """Convert a .docx to PDF bytes using headless LibreOffice."""
+    profile = os.path.join(workdir, "loprofile")
     try:
-        with open("resume_template.tex", "r") as f:
-            resume_latex_template = f.read()
-            
-        filled_resume_latex = resume_latex_template.replace("%%PROJECT_PULSE_BULLETS%%", formatted_pulse)
-        filled_resume_latex = filled_resume_latex.replace("%%PROJECT_LECTRA_BULLETS%%", formatted_lectra)
-        filled_resume_latex = filled_resume_latex.replace("%%SKILLS_SECTION%%", formatted_skills)
-        
-    except FileNotFoundError:
-        raise HTTPException(status_code=500, detail="Resume template missing")
+        subprocess.run(
+            [SOFFICE_BIN, "--headless", "--nologo", "--nofirststartwizard",
+             f"-env:UserInstallation=file://{profile}",
+             "--convert-to", "pdf", "--outdir", workdir, docx_path],
+            check=True, capture_output=True, timeout=120,
+        )
+    except subprocess.TimeoutExpired:
+        raise RuntimeError("PDF conversion timed out")
+    except subprocess.CalledProcessError as e:
+        log = (e.stdout.decode(errors="ignore") + e.stderr.decode(errors="ignore"))
+        raise RuntimeError(f"PDF conversion failed: {log[-800:]}")
 
-    # 5. Compile Resume PDF
-    resume_pdf_bytes = compile_latex(filled_resume_latex, "resume")
+    pdf_path = os.path.splitext(docx_path)[0] + ".pdf"
+    if not os.path.exists(pdf_path):
+        raise RuntimeError("PDF conversion produced no file")
+    with open(pdf_path, "rb") as f:
+        return f.read()
 
-    # 6. Handle Cover Letter (if requested)
-    cl_b64 = None
-    if request.include_cover_letter:
-        print("🤖 Calling OpenAI API for Cover Letter...")
-        cl_full_prompt = f"{cover_letter_prompt_template}\n\nJOB DESCRIPTION:\n{request.job_text}\n\nMASTER RESUME:\n{master_resume}"
-        
+
+# --------------------------------------------------------------------------- #
+#  OpenAI helper
+# --------------------------------------------------------------------------- #
+def call_openai_json(client, model, prompt, label, retries=2):
+    """Call OpenAI expecting strict JSON, with a small retry loop."""
+    last_err = None
+    for attempt in range(retries + 1):
         try:
-            cl_completion = client.chat.completions.create(
+            completion = client.chat.completions.create(
                 model=model,
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant that outputs strict JSON."},
-                    {"role": "user", "content": cl_full_prompt}
+                    {"role": "user", "content": prompt},
                 ],
-                response_format={"type": "json_object"}
+                response_format={"type": "json_object"},
             )
-            cl_content = cl_completion.choices[0].message.content
-            cl_data = json.loads(cl_content)
-            print("✅ OpenAI response received for Cover Letter")
+            return json.loads(completion.choices[0].message.content)
+        except Exception as e:  # network, rate limit, JSON decode, etc.
+            last_err = e
+            print(f"OpenAI attempt {attempt + 1} failed ({label}): {e}")
+            if attempt < retries:
+                time.sleep(1.5 * (attempt + 1))
+    raise RuntimeError(f"AI generation failed for {label}: {last_err}")
 
-            company_name = cl_data.get("company_name", "Hiring Team")
-            body_content = cl_data.get("body_content", "")
-            
-            # Format body content (escape latex)
-            # Split by double newlines to preserve paragraphs
-            paragraphs = body_content.split("\n\n")
-            formatted_paragraphs = [format_latex_content(p.strip()) for p in paragraphs if p.strip()]
-            formatted_body = "\n\n".join(formatted_paragraphs)
-            
-            formatted_company = format_latex_content(company_name)
 
-            with open("cover_letter_template.tex", "r") as f:
-                cl_latex_template = f.read()
-            
-            filled_cl_latex = cl_latex_template.replace("VAR_COMPANY_NAME", formatted_company)
-            filled_cl_latex = filled_cl_latex.replace("VAR_BODY_CONTENT", formatted_body)
-            
-            cl_pdf_bytes = compile_latex(filled_cl_latex, "cover_letter")
-            cl_b64 = base64.b64encode(cl_pdf_bytes).decode('utf-8')
-            
+# --------------------------------------------------------------------------- #
+#  Generation building blocks (each fully independent)
+# --------------------------------------------------------------------------- #
+def build_resume(client, model, job_text, master_resume):
+    prompt_template = read_server_file("tailor_prompt.txt")
+    full_prompt = (
+        f"{prompt_template}\n\nJOB DESCRIPTION:\n{job_text}\n\nMASTER RESUME:\n{master_resume}"
+    )
+    data = call_openai_json(client, model, full_prompt, "resume")
+
+    # Only the Technical Skills lines are tailored; all bullets are fixed in the
+    # generator. Empty strings fall back to the master defaults in the script.
+    content = {
+        "skill_languages": data.get("skill_languages", ""),
+        "skill_frameworks": data.get("skill_frameworks", ""),
+        "skill_backend": data.get("skill_backend", ""),
+        "skill_tools": data.get("skill_tools", ""),
+    }
+
+    with tempfile.TemporaryDirectory() as d:
+        docx_path = os.path.join(d, "resume.docx")
+        run_node("build_resume.js", content, docx_path, d)
+        return docx_to_pdf(docx_path, d)
+
+
+def build_cover_letter(client, model, job_text, master_resume):
+    prompt_template = read_server_file("cover_letter_prompt.txt")
+    full_prompt = (
+        f"{prompt_template}\n\nJOB DESCRIPTION:\n{job_text}\n\nMASTER RESUME:\n{master_resume}"
+    )
+    data = call_openai_json(client, model, full_prompt, "cover_letter")
+
+    company_name = data.get("company_name", "Hiring Team")
+    content = {
+        "company_name": company_name,
+        "body_content": data.get("body_content", ""),
+    }
+
+    with tempfile.TemporaryDirectory() as d:
+        docx_path = os.path.join(d, "cover_letter.docx")
+        run_node("build_cover_letter.js", content, docx_path, d)
+        return docx_to_pdf(docx_path, d), company_name
+
+
+# --------------------------------------------------------------------------- #
+#  Routes
+# --------------------------------------------------------------------------- #
+@app.get("/")
+def root():
+    return {"service": "Resume Tailor API", "status": "ok"}
+
+
+@app.get("/health")
+def health_check():
+    node_ok = shutil.which(NODE_BIN) is not None
+    soffice_ok = shutil.which(SOFFICE_BIN) is not None
+    return {
+        "status": "ok",
+        "node": node_ok,
+        "libreoffice": soffice_ok,
+        "openai_key": bool(os.getenv("OPENAI_API_KEY")),
+    }
+
+
+@app.post("/tailor")
+async def tailor_resume(request: TailorRequest):
+    print("Received tailoring request")
+
+    if not request.job_text or not request.job_text.strip():
+        raise HTTPException(status_code=400, detail="job_text is required")
+
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="OPENAI_API_KEY not set")
+
+    # Resolve what to generate. Prefer explicit `mode`; fall back to legacy flag.
+    mode = (request.mode or "").strip().lower()
+    if mode not in ("both", "resume", "cover"):
+        mode = "both" if request.include_cover_letter else "resume"
+
+    want_resume = mode in ("both", "resume")
+    want_cover = mode in ("both", "cover")
+
+    client = OpenAI(api_key=api_key, timeout=90.0, max_retries=2)
+    model = os.getenv("MODEL", "gpt-4o")
+
+    try:
+        master_resume = read_server_file("resume_master.txt")
+    except FileNotFoundError:
+        raise HTTPException(status_code=500, detail="Server files missing (resume_master.txt)")
+
+    resume_b64 = None
+    cover_b64 = None
+    company_name = None
+    errors = {"resume": None, "cover_letter": None}
+
+    # --- Resume (independent) ---
+    if want_resume:
+        try:
+            resume_pdf = build_resume(client, model, request.job_text, master_resume)
+            resume_b64 = base64.b64encode(resume_pdf).decode("utf-8")
+            print("Resume generated OK")
         except Exception as e:
-            print(f"❌ Cover Letter generation/compilation failed: {e}")
-            # Do not raise exception, so resume can still be returned
-            cl_b64 = None
+            errors["resume"] = str(e)
+            print(f"Resume generation failed: {e}")
 
-    # Return JSON with PDFs (Resume is always present if we got this far)
-    print("📦 Encoding Resume to Base64...")
-    resume_b64 = base64.b64encode(resume_pdf_bytes).decode('utf-8')
-    
+    # --- Cover letter (independent) ---
+    if want_cover:
+        try:
+            cover_pdf, company_name = build_cover_letter(
+                client, model, request.job_text, master_resume
+            )
+            cover_b64 = base64.b64encode(cover_pdf).decode("utf-8")
+            print("Cover letter generated OK")
+        except Exception as e:
+            errors["cover_letter"] = str(e)
+            print(f"Cover letter generation failed: {e}")
+
+    # If everything that was requested failed, surface a 500 so the client
+    # shows a clear error instead of an empty success.
+    produced_anything = (want_resume and resume_b64) or (want_cover and cover_b64)
+    if not produced_anything:
+        detail = "; ".join(v for v in errors.values() if v) or "Generation failed"
+        raise HTTPException(status_code=500, detail=detail)
+
     return {
         "resume": resume_b64,
-        "cover_letter": cl_b64
+        "cover_letter": cover_b64,
+        "company_name": company_name,
+        "errors": errors,
     }

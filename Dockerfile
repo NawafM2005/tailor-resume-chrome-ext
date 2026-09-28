@@ -1,23 +1,32 @@
 FROM python:3.11-slim
 
-# Install LaTeX and dependencies
-RUN apt-get update && apt-get install -y \
-    texlive-latex-base \
-    texlive-fonts-recommended \
-    texlive-latex-extra \
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Node (docx generation) + headless LibreOffice (docx -> pdf) + Carlito
+# (metric-compatible Calibri substitute so the PDF matches the source design).
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    nodejs \
+    npm \
+    libreoffice-writer \
+    fonts-crosextra-carlito \
+    fonts-liberation \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
 WORKDIR /app
 
-# Copy server files
+# Python deps
 COPY server/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# App source
 COPY server/ .
 
-# Expose port (Render will set PORT env variable)
+# Node deps for the docx generators
+RUN cd generator && npm install --omit=dev
+
+# LibreOffice needs a writable HOME for its per-run profile.
+ENV HOME=/tmp
+
 EXPOSE 8000
 
-# Run the application
 CMD uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}

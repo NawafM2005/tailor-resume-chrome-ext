@@ -1,12 +1,13 @@
 {
   "manifest_version": 3,
   "name": "Resume Tailor",
-  "version": "1.0",
-  "description": "Extract job description and generate tailored PDF resume.",
+  "version": "2.0",
+  "description": "Tailor your resume and cover letter to any job description and download polished PDFs.",
   "permissions": [
     "activeTab",
     "scripting",
-    "downloads"
+    "downloads",
+    "storage"
   ],
   "host_permissions": [
     "http://localhost:8000/*",
@@ -17,11 +18,5 @@
   },
   "background": {
     "service_worker": "background.js"
-  },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"]
-    }
-  ]
+  }
 }
