@@ -147,6 +147,13 @@
     }
     .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
 
+    .btn-cancel {
+      width: 100%;
+      background: var(--err-soft);
+      color: var(--err);
+    }
+    .btn-cancel:hover:not(:disabled) { background: var(--err); color: #fff; }
+
     /* Segmented mode selector */
     .segmented {
       display: grid;
@@ -266,6 +273,11 @@
         <path d="M2 12h4"></path><path d="m4.9 4.9 2.9 2.9"></path>
       </svg>
       <span id="generate-label">Generate Resume + Cover Letter</span>
+    </button>
+
+    <button id="btn-cancel" class="btn-cancel hidden" title="Stop the current run so you can try again">
+      <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg>
+      Stop
     </button>
 
     <div id="status" class="status">
